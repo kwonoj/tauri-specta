@@ -127,7 +127,7 @@ use specta::{
     NamedDataType, SpectaID, TypeMap,
 };
 
-use tauri::{Invoke, Manager, Runtime};
+use tauri::{ipc::Invoke, Manager, Runtime};
 pub use tauri_specta_macros::Event;
 
 /// The exporter for [Javascript](https://www.javascript.com).
@@ -187,14 +187,16 @@ pub trait ExportLanguage: 'static {
 
 pub trait CommandsTypeState: 'static {
     type Runtime: tauri::Runtime;
-    type InvokeHandler: Fn(tauri::Invoke<Self::Runtime>) + Send + Sync + 'static;
+    type InvokeHandler: Fn(tauri::ipc::Invoke<Self::Runtime>) -> bool + Send + Sync + 'static;
 
     fn split(self) -> CollectCommandsTuple<Self::InvokeHandler>;
 
     fn macro_data(&self) -> &CollectFunctionsResult;
 }
 
-fn dummy_invoke_handler(_: Invoke<impl Runtime>) {}
+fn dummy_invoke_handler(_: Invoke<impl Runtime>) -> bool {
+    false
+}
 
 pub struct NoCommands<TRuntime>(CollectFunctionsResult, PhantomData<TRuntime>);
 
@@ -203,7 +205,7 @@ where
     TRuntime: tauri::Runtime,
 {
     type Runtime = TRuntime;
-    type InvokeHandler = fn(Invoke<TRuntime>);
+    type InvokeHandler = fn(Invoke<TRuntime>) -> bool;
 
     fn split(self) -> CollectCommandsTuple<Self::InvokeHandler> {
         (Default::default(), dummy_invoke_handler)
@@ -222,7 +224,7 @@ pub struct Commands<TRuntime, TInvokeHandler>(
 impl<TRuntime, TInvokeHandler> CommandsTypeState for Commands<TRuntime, TInvokeHandler>
 where
     TRuntime: tauri::Runtime,
-    TInvokeHandler: Fn(tauri::Invoke<TRuntime>) + Send + Sync + 'static,
+    TInvokeHandler: Fn(tauri::ipc::Invoke<TRuntime>) -> bool + Send + Sync + 'static,
 {
     type Runtime = TRuntime;
     type InvokeHandler = TInvokeHandler;
@@ -283,7 +285,9 @@ where
     TLang: ExportLanguage,
     TRuntime: tauri::Runtime,
 {
-    pub fn commands<TInvokeHandler: Fn(tauri::Invoke<TRuntime>) + Send + Sync + 'static>(
+    pub fn commands<
+        TInvokeHandler: Fn(tauri::ipc::Invoke<TRuntime>) -> bool + Send + Sync + 'static,
+    >(
         self,
         commands: CollectCommandsTuple<TInvokeHandler>,
     ) -> PluginBuilder<TLang, Commands<TRuntime, TInvokeHandler>, TEvents> {
@@ -359,7 +363,7 @@ where
 
         builder
             .invoke_handler(plugin_utils.invoke_handler)
-            .setup(move |app| {
+            .setup(move |app, _plugin| {
                 (plugin_utils.setup)(app);
 
                 Ok(())
