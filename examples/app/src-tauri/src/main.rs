@@ -78,13 +78,13 @@ fn main() {
         .setup(|app| {
             let handle = app.handle();
 
-            DemoEvent::listen_global(&handle, |event| {
+            DemoEvent::listen_any(&handle, |event| {
                 dbg!(event.payload);
             });
 
             DemoEvent("Test".to_string()).emit_all(&handle).ok();
 
-            EmptyEvent::listen_global(&handle, {
+            EmptyEvent::listen_any(&handle, {
                 let handle = handle.clone();
                 move |_| {
                     EmptyEvent.emit_all(&handle).ok();

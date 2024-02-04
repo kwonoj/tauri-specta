@@ -126,24 +126,24 @@ pub trait Event: NamedType {
         handle.emit_to(label, &meta.wrap_with_plugin(Self::NAME), self)
     }
 
-    fn listen_global<F, R: Runtime>(handle: &impl Manager<R>, handler: F) -> EventId
+    fn listen_any<F, R: Runtime>(handle: &impl Manager<R>, handler: F) -> EventId
     where
         F: Fn(TypedEvent<Self>) + Send + 'static,
         Self: DeserializeOwned,
     {
         let meta = get_meta!(handle);
 
-        handle.listen_global(meta.wrap_with_plugin(Self::NAME), make_handler!(handler))
+        handle.listen_any(meta.wrap_with_plugin(Self::NAME), make_handler!(handler))
     }
 
-    fn once_global<F, R: Runtime>(handle: &impl Manager<R>, handler: F)
+    fn once_any<F, R: Runtime>(handle: &impl Manager<R>, handler: F)
     where
         F: FnOnce(TypedEvent<Self>) + Send + 'static,
         Self: DeserializeOwned,
     {
         let meta = get_meta!(handle);
 
-        handle.once_global(meta.wrap_with_plugin(Self::NAME), make_handler!(handler))
+        handle.once_any(meta.wrap_with_plugin(Self::NAME), make_handler!(handler))
     }
 
     // Window functions
