@@ -143,7 +143,7 @@ pub trait Event: NamedType {
     {
         let meta = get_meta!(handle);
 
-        handle.once_any(meta.wrap_with_plugin(Self::NAME), make_handler!(handler))
+        handle.once_any(meta.wrap_with_plugin(Self::NAME), make_handler!(handler));
     }
 
     // Window functions
@@ -174,7 +174,7 @@ pub trait Event: NamedType {
     {
         let meta = get_meta!(window);
 
-        window.once(meta.wrap_with_plugin(Self::NAME), make_handler!(handler))
+        window.once(meta.wrap_with_plugin(Self::NAME), make_handler!(handler));
     }
 }
 
