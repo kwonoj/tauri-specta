@@ -26,7 +26,7 @@ pub struct EventCollection(pub(crate) BTreeSet<SpectaID>, BTreeSet<&'static str>
 
 impl EventCollection {
     pub fn register<E: Event>(&mut self) {
-        if !self.0.insert(E::SID) {
+        if !self.0.insert(E::sid()) {
             panic!("Event {} registered twice!", E::NAME)
         }
 
@@ -99,7 +99,7 @@ macro_rules! make_handler {
 
 macro_rules! get_meta {
     ($handle:ident) => {
-        get_meta_from_registry(Self::SID, Self::NAME, $handle)
+        get_meta_from_registry(Self::sid(), Self::NAME, $handle)
     };
 }
 

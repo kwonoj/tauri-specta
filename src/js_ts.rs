@@ -66,9 +66,9 @@ fn return_as_result_tuple(expr: &str, as_any: bool) -> String {
     )
 }
 
-pub fn maybe_return_as_result_tuple(expr: &str, typ: &DataType, as_any: bool) -> String {
+pub fn maybe_return_as_result_tuple(expr: &str, typ: &Option<DataType>, as_any: bool) -> String {
     match typ {
-        DataType::Result(_) => return_as_result_tuple(expr, as_any),
+        Some(DataType::Result(_)) => return_as_result_tuple(expr, as_any),
         _ => format!("return {expr};"),
     }
 }
@@ -105,7 +105,7 @@ pub fn handle_result(
     cfg: &ExportConfig,
 ) -> Result<String, ExportError> {
     Ok(match &function.result {
-        DataType::Result(t) => {
+        Some(DataType::Result(t)) => {
             let (t, e) = t.as_ref();
 
             format!(
@@ -114,7 +114,9 @@ pub fn handle_result(
                 ts::datatype(&cfg.inner, e, type_map)?
             )
         }
-        t => ts::datatype(&cfg.inner, t, type_map)?,
+        Some(t) => ts::datatype(&cfg.inner, t, type_map)?,
+        //[TODO] this may not be correct
+        None => "void".to_string(),
     })
 }
 
